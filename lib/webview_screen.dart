@@ -15,7 +15,6 @@ class WebviewScreen extends StatefulWidget {
 class _WebviewScreenState extends State<WebviewScreen> {
   final GlobalKey webViewKey = GlobalKey();
   String rootUrl = "https://webview.ping.stage.dedoco.com/";
-  // String rootUrl = "http://192.168.1.3:3000/";
 
   InAppWebViewController? webViewController;
   InAppWebViewSettings settings = InAppWebViewSettings(
@@ -28,7 +27,6 @@ class _WebviewScreenState extends State<WebviewScreen> {
       iframeAllowFullscreen: true);
 
   PullToRefreshController? pullToRefreshController;
-  String url = "";
   double progress = 0;
   final urlController = TextEditingController();
   CookieManager cookieManager = CookieManager.instance();
@@ -57,23 +55,11 @@ class _WebviewScreenState extends State<WebviewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
+        appBar: widget.hasCookie?null:AppBar(
             title: Text(
                 "Ping Webview ${widget.hasCookie ? "with Cookie" : "without Cookie"}")),
         body: SafeArea(
             child: Column(children: <Widget>[
-          TextField(
-            decoration: const InputDecoration(prefixIcon: Icon(Icons.search)),
-            controller: urlController,
-            keyboardType: TextInputType.url,
-            onSubmitted: (value) {
-              var url = WebUri(value);
-              if (url.scheme.isEmpty) {
-                url = WebUri("https://www.google.com/search?q=$value");
-              }
-              webViewController?.loadUrl(urlRequest: URLRequest(url: url));
-            },
-          ),
           Expanded(
             child: Stack(
               children: [
@@ -102,10 +88,6 @@ class _WebviewScreenState extends State<WebviewScreen> {
                     webViewController = controller;
                   },
                   onLoadStart: (controller, url) async {
-                    setState(() {
-                      this.url = url.toString();
-                      urlController.text = this.url;
-                    });
                   },
                   onPermissionRequest: (controller, request) async {
                     return PermissionResponse(
@@ -139,10 +121,6 @@ class _WebviewScreenState extends State<WebviewScreen> {
                   },
                   onLoadStop: (controller, url) async {
                     pullToRefreshController?.endRefreshing();
-                    setState(() {
-                      this.url = url.toString();
-                      urlController.text = this.url;
-                    });
 
 
                   },
@@ -155,14 +133,9 @@ class _WebviewScreenState extends State<WebviewScreen> {
                     }
                     setState(() {
                       this.progress = progress / 100;
-                      urlController.text = url;
                     });
                   },
                   onUpdateVisitedHistory: (controller, url, androidIsReload) {
-                    setState(() {
-                      this.url = url.toString();
-                      urlController.text = this.url;
-                    });
                   },
                   onConsoleMessage: (controller, consoleMessage) {
                     if (kDebugMode) {
